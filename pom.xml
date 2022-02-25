@@ -39,13 +39,20 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <!--eth-->
         <dependency>
             <groupId>org.web3j</groupId>
             <artifactId>core</artifactId>
+            <version>4.8.4</version>
+            <!--            <version>5.0.0</version>-->
+            <!--            <version>3.4.0</version>-->
+        </dependency>
+
+        <dependency>
+            <groupId>org.web3j</groupId>
+            <artifactId>geth</artifactId>
             <version>4.8.4</version>
             <!--            <version>5.0.0</version>-->
             <!--            <version>3.4.0</version>-->
