@@ -168,7 +168,7 @@ public class PreSaleTest {
      * @throws Exception
      */
     @Test
-    public void testFivePresaleByMulitThread() throws Exception {
+    public void testPinkPresaleByMulitThread() throws Exception {
         List<Web3jAccount> accountList = new ArrayList<>();
         // 钱包私钥
         String privateKey1 = "";
