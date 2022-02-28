@@ -2,6 +2,7 @@ package cn.loveyx815.blockchain.swap;
 
 import cn.loveyx815.blockchain.contract.FegPresale;
 import cn.loveyx815.blockchain.contract.PinkPresale;
+import cn.loveyx815.blockchain.pojo.Web3jAccount;
 import cn.loveyx815.blockchain.utils.ConvertUtils;
 import cn.loveyx815.blockchain.utils.KeyUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +20,11 @@ import org.web3j.tx.TransactionManager;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static cn.loveyx815.blockchain.common.Constants.PRIVATE_KEY;
 
@@ -159,6 +159,82 @@ public class PreSaleTest {
             TimeUnit.MILLISECONDS.sleep(5);
         }
         log.info("预售抢购成功！");
+
+    }
+
+
+    /**
+     * 预售抢购多线程版
+     * @throws Exception
+     */
+    @Test
+    public void testFivePresaleByMulitThread() throws Exception {
+        List<Web3jAccount> accountList = new ArrayList<>();
+        // 钱包私钥
+        String privateKey1 = "";
+        String privateKey2 = "";
+        //账号添加
+
+        //todo 多钱包额度确认 & 钱包确认
+        accountList.add(Web3jAccount.builder().privateKey(privateKey1).presaleAmount(BigDecimal.valueOf(0.1)).build());
+        accountList.add(Web3jAccount.builder().privateKey(privateKey2).presaleAmount(BigDecimal.valueOf(0.1)).build());
+
+//        accountList.add(Web3jAccount.builder().privateKey(wangPrivateKey1).presaleAmount(BigDecimal.valueOf(0.6)).build());
+//        accountList.add(Web3jAccount.builder().privateKey(wangPrivateKey2).presaleAmount(BigDecimal.valueOf(0.6)).build());
+
+        //开启多线程
+        ExecutorService executorService = Executors.newFixedThreadPool(accountList.size());
+        AtomicReference<Integer> success = new AtomicReference<>(0);
+        DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+        //TODO 开始时间修改 utc8
+        DateTime startDateTime = DateTime.parse("2022-02-19 14:47:00",format);
+        //TODO 预售合约修改
+        String presaleContract = "0x072D40db9227Ddc350a740aEd7122B3A8A150Ed6";
+        for (Web3jAccount web3jAccount : accountList) {
+            Credentials wallet = web3jAccount.getWallet();
+            TransactionManager transactionManager = new RawTransactionManager(
+                    web3j, wallet, Byte.parseByte("56"));
+
+            //bnb支付金额
+            BigDecimal amount = web3jAccount.getPresaleAmount();
+            //转成链上数据
+            BigInteger amountDecimal = ConvertUtils.onChainFormat(amount, 18);
+
+            BigInteger gasPrice = ConvertUtils.onChainFormat(BigDecimal.valueOf(7),9);
+            BigInteger gasLimit = BigInteger.valueOf(510266L);
+
+            executorService.submit(()->{
+                log.info("thread  submit");
+                //cas
+                while (DateTime.now().toDate().getTime() < startDateTime.toDate().getTime()  ){
+                    //wait
+                }
+                PinkPresale token = PinkPresale.load(presaleContract,web3j,transactionManager,gasPrice,gasLimit);
+                TransactionReceipt send = null;
+                try {
+
+                    send = token.CONTRIBUTE(amountDecimal).send();
+                    System.out.println("send.toString() = " + send.toString());
+                }catch (Exception e){
+                    log.error("error:",e);
+                    try {
+                        send = token.CONTRIBUTE(amountDecimal).send();
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
+                    System.out.println("send.toString() = " + send.toString());
+                }
+                if (Objects.nonNull(send)) {
+                    success.getAndSet(success.get() + 1);
+                }
+            });
+        }
+
+        while (success.get() < accountList.size()){
+            TimeUnit.MINUTES.sleep(3);
+        }
+        log.info("批量抢购成功！退出");
+
 
 
     }

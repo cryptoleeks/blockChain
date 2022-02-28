@@ -63,6 +63,11 @@ public class PinkPresale extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
+    /**
+     * pink预售
+     * @param payableValue
+     * @return
+     */
     public RemoteFunctionCall<TransactionReceipt> CONTRIBUTE( BigInteger payableValue) {
         final Function function = new Function(
                 FUNC_CONTRIBUTE,
